@@ -1,29 +1,63 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Text, Center, ScrollView, VStack, HStack, Image } from 'native-base';
-import { getCurrentWeather, getWeatherForecast } from '../services/apiService'; 
+import axios from 'axios';
 import dayjs from 'dayjs';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const WeatherScreen = () => {
   const [currentWeather, setCurrentWeather] = useState(null);
   const [forecast, setForecast] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [city, setCity] = useState(null); 
+
+  const apiKey = 'f8bef8df7530a93df6fabfa1aef95ca0';
+
+  const getCurrentWeather = async (cityName) => {
+    const url = `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${apiKey}&units=metric&lang=en`;
+    const response = await axios.get(url);
+    return response.data;
+  };
+
+  const getWeatherForecast = async (cityName) => {
+    const url = `https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&appid=${apiKey}&units=metric&lang=en`;
+    const response = await axios.get(url);
+    return response.data.list.slice(14, 55);
+  };
+
+  useEffect(() => {
+    const fetchCity = async () => {
+      try {
+        const userData = await AsyncStorage.getItem('user');
+        if (userData) {
+          const user = JSON.parse(userData);
+          const userCity = user.city || 'Istanbul';
+          setCity(userCity); 
+        } else {
+          setCity('Istanbul'); 
+        }
+      } catch (error) {
+        console.error("City çekilirken hata:", error);
+        setCity('Istanbul');
+      }
+    };
+
+    fetchCity();
+  }, []);
 
   useEffect(() => {
     const fetchWeatherData = async () => {
-      try {
-        const currentResponse = await getCurrentWeather(); 
-        const forecastResponse = await getWeatherForecast(); 
+      if (!city) return; 
 
-        console.log('Forecast Data:', forecastResponse); 
+      try {
+        const currentResponse = await getCurrentWeather(city);
+        const forecastResponse = await getWeatherForecast(city);
 
         setCurrentWeather(currentResponse);
 
         const dailyForecast = [];
         let lastDate = null;
-
         forecastResponse.forEach((day) => {
           const formattedDate = dayjs(day.dt_txt).format('YYYY-MM-DD');
-          
           if (formattedDate !== lastDate) {
             dailyForecast.push(day);
             lastDate = formattedDate;
@@ -31,17 +65,17 @@ const WeatherScreen = () => {
         });
 
         setForecast(dailyForecast);
-        setLoading(false);
       } catch (error) {
-        console.error(error);
+        console.error("Weather verisi alınamadı:", error);
+      } finally {
         setLoading(false);
       }
     };
 
     fetchWeatherData();
-  }, []);
+  }, [city]); 
 
-  if (loading) {
+  if (loading || !currentWeather) {
     return (
       <Center flex={1}>
         <Text>Loading...</Text>
@@ -52,7 +86,6 @@ const WeatherScreen = () => {
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
       <Center flex={1} bg="white" px="4" py="4">
-
         <Box
           bg="#054f5c"
           p="6"
@@ -82,8 +115,8 @@ const WeatherScreen = () => {
         <VStack space={3} mt="6" w="90%" maxW="400">
           <Text fontSize="lg" fontWeight="bold">4-Day Weather Forecast</Text>
           {forecast.map((day, index) => {
-            const date = dayjs(day.dt_txt); 
-            const formattedDate = date.format('DD.MM.YYYY'); 
+            const date = dayjs(day.dt_txt);
+            const formattedDate = date.format('DD.MM.YYYY');
 
             return (
               <Box key={index} bg="coolGray.100" p="3" rounded="lg" shadow="2">
