@@ -23,28 +23,39 @@ export default function CategoryDetails() {
   const [uploadedImageUrl, setUploadedImageUrl] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Kullanıcının kıyafet ve renk verilerini çekiyoruz
+  const fetchClothes = async (userId) => {
+  try {
+    const res = await fetch(`http://wardrobe.pinarnur.com/api/Clothing/clothes/${userId}`);
+    const data = await res.json();
+
+    const clothesArray = Array.isArray(data) ? data : [];
+
+    const filtered = clothesArray.filter((item) => item.category_id === categoryId);
+    setClothes(filtered);
+  } catch (err) {
+    console.error("Kıyafet verisi alınamadı:", err);
+    setClothes([]); // hata durumunda da boş göster
+  }
+};
+
+
+  const fetchColors = async () => {
+    try {
+      const res = await fetch(`http://wardrobe.pinarnur.com/api/Color`);
+      const data = await res.json();
+      setColors(data);
+    } catch (err) {
+      console.error("Renk verisi alınamadı:", err);
+    }
+  };
+
   const fetchData = async () => {
     try {
       const userStr = await AsyncStorage.getItem("user");
       const user = JSON.parse(userStr);
-
-      const [clothesRes, colorsRes] = await Promise.all([
-        fetch(`http://wardrobe.pinarnur.com/api/Clothing/clothes/${user.id}`),
-        fetch(`http://wardrobe.pinarnur.com/api/Color`),
-      ]);
-
-      const clothesData = await clothesRes.json();
-      const colorsData = await colorsRes.json();
-
-      const filtered = clothesData.filter(
-        (item) => item.category_id === categoryId
-      );
-
-      setClothes(filtered);
-      setColors(colorsData);
+      await Promise.all([fetchClothes(user.id), fetchColors()]);
     } catch (err) {
-      console.error("Veriler alınamadı:", err);
+      console.error("Veriler alınırken hata oluştu:", err);
     } finally {
       setLoading(false);
     }
@@ -54,13 +65,11 @@ export default function CategoryDetails() {
     fetchData();
   }, [categoryId]);
 
-  // Renk ID'sinden renk adını buluyoruz
   const getColorName = (id) => {
     const found = colors.find((c) => c.id === id);
     return found ? found.name : "Bilinmiyor";
   };
 
-  // Seçilen resmi sunucuya yüklüyoruz
   const uploadImage = async (selectedImage) => {
     const formData = new FormData();
     formData.append("file", {
@@ -119,19 +128,31 @@ export default function CategoryDetails() {
       const user = JSON.parse(userStr);
 
       const clothingData = {
-        id: 0,
-        user_id: user.id,
-        name,
-        image_url: uploadedImageUrl,
-        category_id: categoryId,
-        season_id: parseInt(seasonId),
-        colorId: parseInt(colorId),
-      };
+  id: 0,
+  user_id: user.id,
+  name: name.trim(),
+  image_url: uploadedImageUrl,
+  category_id: categoryId,
+  category: { id: categoryId },            // ✔️
+  season_id: parseInt(seasonId),
+  season: { id: parseInt(seasonId) },      // ✔️
+  colorId: parseInt(colorId),
+  color: { id: parseInt(colorId) }         // ✔️
+};
+
+console.log("Gönderilen veri:", clothingData);
+
 
       await axios.post(
-        "http://wardrobe.pinarnur.com/api/Clothing/newClothing",
-        clothingData
-      );
+  "http://wardrobe.pinarnur.com/api/Clothing/newClothing",
+  clothingData,
+  {
+    headers: {
+      "Content-Type": "application/json"
+    }
+  }
+);
+
 
       alert("Kıyafet başarıyla eklendi!");
       setName("");
@@ -149,6 +170,7 @@ export default function CategoryDetails() {
     }
   };
 
+
   if (loading)
     return (
       <Center flex={1}>
@@ -159,7 +181,6 @@ export default function CategoryDetails() {
   return (
     <ScrollView contentContainerStyle={{ padding: 16, backgroundColor: "#f0f4f8" }}>
       <VStack space={3}>
-        {/* Form açma kapama butonu */}
         {!showForm && (
           <Button
             onPress={() => setShowForm(true)}
@@ -171,7 +192,6 @@ export default function CategoryDetails() {
           </Button>
         )}
 
-        {/* Form gösterimi */}
         {showForm && (
           <AddClothingForm
             image={image}
@@ -189,7 +209,6 @@ export default function CategoryDetails() {
           />
         )}
 
-        {/* Kıyafet Listesi */}
         {clothes.length === 0 ? (
           <Text color="gray.600" textAlign="center" mt={6}>
             Bu kategoriye ait kıyafet bulunamadı.

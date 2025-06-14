@@ -1,5 +1,5 @@
 import React from "react";
-import { VStack, FormControl, Input, Button, Icon, Link } from "native-base";
+import { VStack, FormControl, Input, Button, Icon, Link, Text } from "native-base";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 export default function LoginForm({ username, password, showPassword, loading, setUsername, setPassword, setShowPassword, handleLogin, navigateRegister }) {
@@ -44,9 +44,17 @@ export default function LoginForm({ username, password, showPassword, loading, s
         Giriş Yap
       </Button>
 
-      <Button variant="link" onPress={navigateRegister} _text={{ color: "#086070", fontWeight: "bold" }}>
-        Hesabın yok mu? Kayıt Ol
-      </Button>
+      <Button variant="link" onPress={navigateRegister}>
+  <Text>
+    <Text style={{ color: "black", fontWeight: "normal" }}>
+      Hesabın yok mu?{" "}
+    </Text>
+    <Text style={{ color: "#054f5c", fontWeight: "bold" }}>
+      Kayıt Ol
+    </Text>
+  </Text>
+</Button>
+
     </VStack>
   );
 }

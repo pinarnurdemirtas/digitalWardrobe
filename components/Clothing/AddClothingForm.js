@@ -75,10 +75,11 @@ export default function AddClothingForm({
           dropdownIcon={<></>}
           _selectedItem={{ bg: "coolGray.200", endIcon: null }}
         >
-          <Select.Item label="İlkbahar" value="1" />
+          <Select.Item label="Her Mevsim" value="5" />
+          <Select.Item label="İlkbahar" value="4" />
           <Select.Item label="Yaz" value="2" />
           <Select.Item label="Sonbahar" value="3" />
-          <Select.Item label="Kış" value="4" />
+          <Select.Item label="Kış" value="1" />
         </Select>
       </FormControl>
 

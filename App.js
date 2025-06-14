@@ -17,6 +17,7 @@ import InteractionScreen from "./screens/Interaction/InteractionScreen";
 import ProfileScreen from "./screens/Profile/ProfileScreen";
 import FavoriteOutfitsScreen from "./screens/Outfits/FavoriteOutfitsScreen";
 import CreateCombineScreen from "./screens/Outfits/CreateCombineScreen";
+import FindOutfitScreen from "./screens/Outfits/FindOutfitScreen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Stack = createStackNavigator();
@@ -118,6 +119,11 @@ export default function App() {
             name="FavoriteOutfits"
             component={FavoriteOutfitsScreen}
             options={{ title: "Favori Kombinler" }}
+          />
+          <Stack.Screen
+            name="FindOutfit"
+            component={FindOutfitScreen}
+            options={{ title: "Kombin Önerisi" }}
           />
         </Stack.Navigator>
       </NavigationContainer>

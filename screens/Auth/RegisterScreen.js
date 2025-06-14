@@ -96,19 +96,7 @@ export default function RegisterScreen() {
               borderWidth={1}
               borderColor="#086070"
             >
-              {/* Başlık ve Logo */}
-              <Center mb="6">
-                <Icon
-                  as={MaterialCommunityIcons}
-                  name="wardrobe-outline"
-                  size="90"
-                  color="#054f5c"
-                />
-                <Heading size="lg" fontWeight="bold" color="#054f5c" mt="3">
-                  Kayıt Ol
-                </Heading>
-              </Center>
-
+          
               {/* Form */}
               <RegisterForm
                 form={form}
